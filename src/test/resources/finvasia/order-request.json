@@ -1,0 +1,13 @@
+jData={
+	"uid": "TEST2",
+	"actid": "TEST2",
+	"exch": "NFO",
+	"tsym": "NIFTY28JUL22F",
+	"qty": "50",
+	"prc": "0",
+	"prd": "M",
+	"trantype": "B",
+	"prctyp": "MKT",
+	"ret": "DAY",
+	"ordersource": "MOB"
+}&jKey=6579b6a5981fa63ec1dc6b042f4d8a001677ca4daa92255f48937e0986f6849f

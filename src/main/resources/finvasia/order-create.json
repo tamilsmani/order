@@ -1,0 +1,13 @@
+{
+	"uid": "TEST2",
+	"actid": "TEST2",
+	"exch": "NFO",
+	"tsym": "NIFTY28JUL22F",
+	"qty": "50",
+	"prc": "0",
+	"prd": "M",
+	"trantype": "B",
+	"prctyp": "MKT",
+	"ret": "DAY",
+	"ordersource": "API"
+}

@@ -1,0 +1,11 @@
+{
+	"uid": "{{USER_ID}}",
+	"exch": "NSE",
+	"tsym": "INFY-EQ",
+	"norenordno": "22021000000319",
+	"qty": "4",
+	"prc": "1550",
+	"prctyp": "LMT",
+	"ret": "DAY",
+	"ordersource": "MOB"
+}

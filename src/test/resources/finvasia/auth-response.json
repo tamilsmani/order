@@ -1,0 +1,128 @@
+{
+    "request_time": "19:51:10 18-07-2022",
+    "actid": "TEST2",
+    "uname": "TEST2_UAT",
+    "prarr": [
+        {
+            "prd": "C",
+            "s_prdt_ali": "CNC",
+            "exch": [
+                "NSE",
+                "BSE"
+            ]
+        },
+        {
+            "prd": "M",
+            "s_prdt_ali": "NRML",
+            "exch": [
+                "NFO",
+                "CDS",
+                "BCD",
+                "MCX",
+                "NCX"
+            ]
+        },
+        {
+            "prd": "I",
+            "s_prdt_ali": "MIS",
+            "exch": [
+                "NSE",
+                "BSE",
+                "NFO",
+                "CDS",
+                "BCD",
+                "MCX",
+                "NCX"
+            ]
+        },
+        {
+            "prd": "H",
+            "s_prdt_ali": "CO",
+            "exch": [
+                "NSE",
+                "BSE",
+                "NFO",
+                "CDS",
+                "BCD",
+                "MCX"
+            ]
+        },
+        {
+            "prd": "B",
+            "s_prdt_ali": "BO",
+            "exch": [
+                "NSE",
+                "BSE",
+                "NFO",
+                "CDS",
+                "BCD",
+                "MCX"
+            ]
+        }
+    ],
+    "stat": "Ok",
+    "susertoken": "6dc58982dbf6ef66bd1d9b38cd4645fd7d5d4702eb1a30ceade5fe2d9f20c132",
+    "email": "pkumar2@finvasia.in",
+    "orarr": [
+        "LMT",
+        "MKT",
+        "SL-LMT",
+        "SL-MKT",
+        "DS",
+        "2L",
+        "3L"
+    ],
+    "exarr": [
+        "NSE",
+        "NFO",
+        "CDS",
+        "MCX",
+        "BSE",
+        "BCD",
+        "NCX"
+    ],
+    "values": [
+        "1"
+    ],
+    "mws": {
+        "1": [
+            {
+                "exch": "NSE",
+                "token": "3045",
+                "tsym": "SBIN-EQ",
+                "pp": "2",
+                "ls": "1",
+                "ti": "0.05"
+            },
+            {
+                "exch": "NSE",
+                "token": "22",
+                "tsym": "ACC-EQ",
+                "pp": "2",
+                "ls": "1",
+                "ti": "0.05"
+            },
+            {
+                "exch": "NFO",
+                "token": "35341",
+                "tsym": "NIFTY21JUL22P12750",
+                "weekly": "W3",
+                "dname": "NIFTY 21JUL22 12750 PE ",
+                "pp": "2",
+                "ls": "50",
+                "ti": "0.05"
+            },
+            {
+                "exch": "NFO",
+                "token": "53735",
+                "tsym": "NIFTY28JUL22F",
+                "dname": "NIFTY JUL FUT",
+                "pp": "2",
+                "ls": "50",
+                "ti": "0.05"
+            }
+        ]
+    },
+    "brkname": "FINV",
+    "lastaccesstime": "1658154070"
+}
