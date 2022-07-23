@@ -2,9 +2,6 @@ package com.stock.view;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.EventObject;
 
 import javax.swing.AbstractCellEditor;
@@ -23,13 +20,12 @@ public class TableButtonRenderer extends AbstractCellEditor implements TableCell
     float INCREMENT_VALUE = 0.5f;
     StockAPI stockAPI;
     int maxColumnCount = 0;
-    CustomKeyEventDispatcher customKeyEventDispatcher;
+    ScalpUI scalpUI;
     
     String value = null;
-    public TableButtonRenderer(String symbol, StockAPI stockAPI, CustomKeyEventDispatcher customKeyEventDispatcher) {
+    public TableButtonRenderer(String symbol, StockAPI stockAPI) {
         this.symbol = symbol;
         this.stockAPI = stockAPI;
-        this.customKeyEventDispatcher = customKeyEventDispatcher;
     }
 
     @Override
@@ -43,12 +39,6 @@ public class TableButtonRenderer extends AbstractCellEditor implements TableCell
 
 	        maxColumnCount = table.getModel().getColumnCount()-1;
 	        JButton b = new JButton(symbol);
-	        b.addKeyListener(new KeyAdapter() {
-	        	@Override
-	        	public void keyReleased(KeyEvent e) {
-	        		customKeyEventDispatcher.dispatchKeyEvent(e);
-	        	}
-			});
 	        b.addActionListener(new java.awt.event.ActionListener() {
 	
 	            @Override
@@ -62,6 +52,7 @@ public class TableButtonRenderer extends AbstractCellEditor implements TableCell
 		                } else if("+".equals(button.getText())) {
 		                    tableModel.setValueAt(Float.parseFloat(tableModel.getValueAt(row, column-1).toString()) + INCREMENT_VALUE, row, column-1); 
 		                }
+
 		               // stockAPI.modifyOrder(new OrderRequest(null,null,0,tableModel.getValueAt(row, maxColumnCount).toString()));
 	               } else {
 	            	   b.removeActionListener(this);

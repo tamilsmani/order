@@ -2,16 +2,15 @@ package com.stock.client;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.swing.JLabel;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -29,12 +28,8 @@ import com.stock.model.TradeDataEnum;
 import com.stock.model.TradeTableModel;
 import com.stock.model.finvasia.Auth;
 import com.stock.model.finvasia.AuthResponse;
-import com.stock.model.finvasia.FinVasiaOrderResponse;
 import com.stock.model.finvasia.MarketDepth;
 import com.stock.model.finvasia.Order;
-import com.stock.model.finvasia.OrderPositionRequest;
-import com.stock.model.finvasia.OrderPositionResponse;
-import com.stock.model.finvasia.TradeBookResponse;
 import com.stock.model.finvasia.WSFeedMaketDepth;
 import com.stock.model.finvasia.WSRequest;
 import com.stock.model.finvasia.WSResponse;
@@ -43,11 +38,10 @@ import com.stock.view.ScalpUI;
 
 import lombok.SneakyThrows;
 
-public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
+public class PaperTrade extends AbstractSockAPI implements StockAPI {
 
 	private RestTemplate restTemplate = new RestTemplate();
-	String ORDER_EXECUTED_FORMAT = "[%s] - Order Executed  [%s] and Order ref [%s]";
-	String ORDER_FAILURE_FORMAT = "[%s] - Order Execution Failure [%s] and Order ref [%s]";
+	String ORDER_EXECUTED_FORMAT = "Paper Trade [%s] order Executed";
 	
 	Properties prop = new Properties();
 
@@ -62,13 +56,12 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 	
 	ObjectMapper objectMapper;
 	
-	String authToken = null;
-	Auth authRequest = null;
-	public CustomServerWebSocketHandler customServerWebSocketHandler = null;
+	String authToken = "DUMMY_AUTH_TOKEN";
+	Auth authRequest = new Auth();
 	WebSocketConnectionManager manager;
 	String webSockeURL = null;
 	String webSocketAuthURL = null;
-	public FinvasiaAPI(ScalpUI scalpUI) throws Exception {
+	public PaperTrade(ScalpUI scalpUI) throws Exception {
 		super(scalpUI);
 		//FinvasiaWS finvasiaWS = new FinvasiaWS();
 		InputStream propertyFile = new FileInputStream(System.getProperty("config.location"));
@@ -84,15 +77,9 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 		webSocketAuthURL = prop.getProperty("finvasia.stock.websocket.auth.url")+ "/QuickAuth";
 
 		this.scalpUI = scalpUI;
-		
-		createAuthRequest();
 		objectMapper();
-		doAuth();
-		if(authToken!=null) {
-			doWSAuth();
-			loadOrderPosition();
-		}
-		
+		doWSAuth();
+
 		initalizeMarketDepth();
 		startPLCalculation();
 	}
@@ -115,34 +102,15 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 		return objectMapper;
 	}
 	
-	private void createAuthRequest() {
-		authRequest = new Auth();
-		authRequest.setUid(prop.getProperty("finvasia.uat.uid"));
-		authRequest.setActid(authRequest.getUid());
-		authRequest.setPwd(DigestUtils.sha256Hex(prop.getProperty("finvasia.uat.pwd")));
-		authRequest.setFactor2(prop.getProperty("finvasia.uat.factor2"));
-		authRequest.setVc(prop.getProperty("finvasia.uat.vc"));
-		authRequest.setAppkey(DigestUtils.sha256Hex(prop.getProperty("finvasia.uat.uid") + '|' +prop.getProperty("finvasia.uat.appkey")));
-		authRequest.setImei(prop.getProperty("finvasia.uat.imei"));
-		
-	}
 	@Override
-	@SneakyThrows
 	public void doAuth() {
-		String authResponseStr = doAPICall(authURL, objectMapper.writeValueAsString(authRequest));
-		if(authResponseStr.contains("Not_Ok")) {
-			scalpUI.logMessageListModel.addElement("Authentication Failure ");
-		} else {
-			AuthResponse authResponse = objectMapper.readValue(authResponseStr,AuthResponse.class);
-			authToken =  authResponse.getSusertoken();
-			authRequest.setUid(authResponse.getActid());
-			scalpUI.clientIdValue.setText(authResponse.getActid());
-		}
 	}
 	
 	@SneakyThrows
 	@Override
 	public OrderResponse createOrder(OrderRequest orderRequest) {
+		doAPICall("","");
+		
 		Order order = new Order();
 		order.setUid(authRequest.getUid());
 		order.setActid(authRequest.getActid());
@@ -168,143 +136,119 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 //		order.setPrctyp("MKT");
 //		order.setRet("DAY");
 //		order.setOrdersource("MOB");
-		
-		FinVasiaOrderResponse orderResponse = objectMapper.readValue(
-				doAPICall(orderCreateURL, objectMapper.writeValueAsString(order)),FinVasiaOrderResponse.class);
-		if(StockEnum.OK.name().equalsIgnoreCase(orderResponse.getStatus())) {
-			
-			OrderPositionRequest orderPositionRequest = new OrderPositionRequest();
-			orderPositionRequest.setActid(authRequest.getActid());
-			orderPositionRequest.setUid(authRequest.getUid());
-			
-			String tradeBookResponseStr = doAPICall(tradeBookURL, objectMapper.writeValueAsString(orderPositionRequest));
-			boolean isOrderExecuted = false;
-			
-			// If no order then we get different "response" if not then we can look for the trade book response []
-			if(!tradeBookResponseStr.contains("emsg")) {
-				TradeBookResponse[] tradeBookResponses = objectMapper.readValue(tradeBookResponseStr,TradeBookResponse[].class);
-				for(TradeBookResponse tradeBookResponse : tradeBookResponses) {
-					if(tradeBookResponse.getNorenordno().equalsIgnoreCase(orderResponse.getNorenordno())) {
-						isOrderExecuted = true;
-						break;
-					}
-				}
-			}
-			
-			if(isOrderExecuted) {
-				scalpUI.logMessageListModel.addElement(String.format(ORDER_EXECUTED_FORMAT, orderResponse.getRequestTime(), order.getTsym(),
-						orderResponse.getNorenordno()));
-			} else {
-				scalpUI.logMessageListModel.addElement(String.format(ORDER_FAILURE_FORMAT, orderResponse.getRequestTime(), order.getTsym(),
-						orderResponse.getNorenordno()));
-			}
-			
-			loadOrderPosition();
-			updateMarketData();
-		}
+		loadPaperTradeOrderPosition(order);
+		updateMarketData();
+		updatePLSummary();
 		return new OrderResponse(orderRequest.getTradingSymbol(), orderRequest.getTransType(), 50, 50.55f, 50.55f, 0, 0, StockEnum.PENDING.getDesc(), "O-1");
 	}
 
 	@Override
-	@SneakyThrows
 	public void loadOrderPosition() {
-		OrderPositionRequest orderPositionRequest = new OrderPositionRequest();
-		orderPositionRequest.setUid(authRequest.getUid());
-		orderPositionRequest.setActid(authRequest.getActid());
+	}
+	
+	@SneakyThrows
+	public void loadPaperTradeOrderPosition(Order order) {
+		int row = scalpUI.tradeTableModel.getRowCount();
+		if(row == 0) {
+			createOrderInTableModel(order);
+		} else {
+			row = row -1;
+			// Close Last Open Order
+			if(StockEnum.PENDING.getDesc().equalsIgnoreCase(
+					scalpUI.tradeTable.getValueAt(row, TradeDataEnum.STATUS.getColumnIndex()).toString())) {
+				scalpUI.tradeTable.setValueAt(StockEnum.OK.getDesc(), row, TradeDataEnum.STATUS.getColumnIndex());
+				
+				scalpUI.tradeTable.setValueAt(null, row, TradeDataEnum.MINUS.getColumnIndex());
+				scalpUI.tradeTable.setValueAt(null, row, TradeDataEnum.PLUS.getColumnIndex());
+				scalpUI.tradeTable.setValueAt(null, row, TradeDataEnum.EXIT.getColumnIndex());
+	
+			} else {
+				createOrderInTableModel(order);
+			}
+		}
+		scalpUI.tradeTableModel.fireTableDataChanged();
+	}
+	private void createOrderInTableModel(Order order) {
+		TradeTableModel tradeTableModel = new TradeTableModel();
+		tradeTableModel.setTradingSymbol(order.getTsym());
+		tradeTableModel.setTransType(order.getTrantype());
+		tradeTableModel.setQuantity(Integer.parseInt(order.getQty()));
+		
+		if(StockEnum.SELL.getDesc().equalsIgnoreCase(order.getTrantype()) && 
+				order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionPECombo.getSelectedItem()).getKey())) {
+			tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionPEAsk)));
+
+//			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()))
+//				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionPEAsk)));
+//			else 
+//				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionPEBid)));
+			
+		} else if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()) && 
+				order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionCECombo.getSelectedItem()).getKey())) {
+			tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionCEAsk)));
+//			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()))
+//				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionCEAsk)));
+//			else 
+//				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionCEBid)));
+			
+		} else if(order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexCombo.getSelectedItem()).getKey())) {
+			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()))
+				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.indexAsk)));
+			else 
+				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.indexBid)));
+			
+		}
+		
+		tradeTableModel.setSl(tradeTableModel.getAvg() -
+				Float.parseFloat(scalpUI.stopLossTxt.getText()));
+		tradeTableModel.setLtp(tradeTableModel.getAvg());
+		tradeTableModel.setPl(tradeTableModel.getAvg()- tradeTableModel.getLtp());
+		tradeTableModel.setStatus(StockEnum.PENDING.getDesc());
+		
+//		tradeTableModel.setMinusButton(new TableButtonRenderer("-", this, scalpUI.customKeyEventDispatcher));
+//		tradeTableModel.setPlusButton(new TableButtonRenderer("+", this, scalpUI.customKeyEventDispatcher));
+//		tradeTableModel.setExitButton(new TableOrderExitButtonRenderer("Exit", this));
+		
+		scalpUI.tradeTableModel.addRow(new Object[] {
+				tradeTableModel.getTradingSymbol(),
+				tradeTableModel.getTransType(),
+				tradeTableModel.getQuantity(),
+				tradeTableModel.getAvg(),
+				tradeTableModel.getMinusButton(),
+				tradeTableModel.getSl(),
+				tradeTableModel.getPlusButton(),
+				tradeTableModel.getLtp(),
+				tradeTableModel.getPl(),
+				tradeTableModel.getExitButton(),
+				tradeTableModel.getStatus()
+		});
+		
+		scalpUI.logMessageListModel.addElement(String.format(ORDER_EXECUTED_FORMAT, order.getTsym()));
+		
+		scalpUI.tradeTable.scrollRectToVisible(
+				scalpUI.tradeTable.getCellRect(scalpUI.tradeTable.getRowCount() - 1, 0, true));
+		
+	}
+	public void updatePLSummary() {
+		int count = scalpUI.tradeTableModel.getRowCount();
 		
 		Float bookPL = 0f;
 		Integer openPosition = 0;
 		Integer closedPosition = 0;
 		
-		// // Mock
-		 Path fileName
-         = Path.of("D:\\Javaworksapce\\scalp\\src\\test\\resources\\finvasia\\order-position-response.json");
-		 String orderPositionResponseStr = Files.readString(fileName);
-		 
-		//String orderPositionResponseStr = doAPICall(positionBookURL, objectMapper.writeValueAsString(orderPositionRequest));
-		if(!orderPositionResponseStr.contains("emsg")) {
-			OrderPositionResponse[] orderPositionResponses = objectMapper.readValue(orderPositionResponseStr, OrderPositionResponse[].class);
-			
-			int rowCount = scalpUI.tradeTableModel.getRowCount();
-			for(int i=0;i<rowCount;i++) {
-				scalpUI.tradeTableModel.removeRow(0);
+		for(int row=0;row<count;row++) {
+			if(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.STATUS.getColumnIndex())
+					.equals(StockEnum.OK.getDesc())) {
+				bookPL += Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.PL.getColumnIndex()).toString());
+				closedPosition++;
+			} else {
+				openPosition++;
 			}
-			for( OrderPositionResponse  orderPositionResponse : orderPositionResponses) {
-				TradeTableModel tradeTableModel = new TradeTableModel();
-				
-				tradeTableModel.setTradingSymbol(orderPositionResponse.getTsym());
-				// Closed order PL
-				if(Integer.parseInt(orderPositionResponse.getNetqty()) ==0) {
-					bookPL += Float.parseFloat(orderPositionResponse.getRpnl());
-					closedPosition++;
-					
-				//if(orderPositionResponse.getNetqty().equals("0")) {
-	//				tradeTableModel.setTransType("-");
-	//				tradeTableModel.setQuantity(0);
-	//				tradeTableModel.setMinusButton(null);
-	//				tradeTableModel.setPlusButton(null);
-	//				tradeTableModel.setSl(0.0f);
-	//				tradeTableModel.setLtp(0.0f);
-	//				tradeTableModel.setPl(Float.parseFloat( orderPositionResponse.getRpnl()));
-	//				tradeTableModel.setExitButton(null);
-	//				tradeTableModel.setStatus(StockEnum.OK.getDesc());
-				} else {
-					// Open orders
-					openPosition++;
-					int buyQuantity = Integer.parseInt(orderPositionResponse.getDaybuyqty());
-					int sellQuantity = Integer.parseInt(orderPositionResponse.getDaysellqty());
-					int diffQuantity = buyQuantity - sellQuantity;
-					if(diffQuantity >0) {
-						tradeTableModel.setTransType(StockEnum.BUY.getDesc());
-						tradeTableModel.setQuantity(diffQuantity);
-						tradeTableModel.setAvg(Float.parseFloat(orderPositionResponse.getDaybuyavgprc()));
-						tradeTableModel.setSl(Float.parseFloat(orderPositionResponse.getDaybuyavgprc()) - 
-								Float.parseFloat(scalpUI.stopLossTxt.getText()));
-						tradeTableModel.setLtp(tradeTableModel.getAvg());
-						tradeTableModel.setPl(tradeTableModel.getAvg()- tradeTableModel.getLtp());
-	
-					} else {
-						tradeTableModel.setTransType(StockEnum.SELL.getDesc());
-						tradeTableModel.setQuantity(sellQuantity-buyQuantity);
-						tradeTableModel.setAvg(Float.parseFloat(orderPositionResponse.getDaysellavgprc()));
-						tradeTableModel.setSl(Float.parseFloat(orderPositionResponse.getDaysellavgprc()) + 
-								Float.parseFloat(scalpUI.stopLossTxt.getText()));
-						tradeTableModel.setLtp(tradeTableModel.getAvg());
-						tradeTableModel.setPl(tradeTableModel.getAvg()- tradeTableModel.getLtp());
-	
-					}
-					/*
-					tradeTableModel.setMinusButton(new TableButtonRenderer("-", this));
-					tradeTableModel.setPlusButton(new TableButtonRenderer("+", this));
-					tradeTableModel.setExitButton(new TableOrderExitButtonRenderer("Exit", this));
-					*/
-					tradeTableModel.setStatus(StockEnum.PENDING.getDesc());
-				
-					scalpUI.tradeTableModel.addRow(new Object[] {
-							tradeTableModel.getTradingSymbol(),
-							tradeTableModel.getTransType(),
-							tradeTableModel.getQuantity(),
-							tradeTableModel.getAvg(),
-							tradeTableModel.getMinusButton(),
-							tradeTableModel.getSl(),
-							tradeTableModel.getPlusButton(),
-							tradeTableModel.getLtp(),
-							tradeTableModel.getPl(),
-							tradeTableModel.getExitButton(),
-							tradeTableModel.getStatus()
-					});
-				}
-			}
-			scalpUI.tradeTableModel.fireTableDataChanged();
-			// PL Summary
-			scalpUI.bookedPLAmount.setText(bookPL.toString());
-			scalpUI.openPositionValue.setText(openPosition.toString());
-			scalpUI.closedPositionValue.setText(closedPosition.toString());
-			
-			scalpUI.currentOrderSymbol.setText(scalpUI.tradeTableModel.getValueAt(0, TradeDataEnum.SYMBOL.getColumnIndex()).toString());
-		} else {
-			scalpUI.logMessageListModel.addElement("No open order ");
 		}
+		
+		scalpUI.bookedPLAmount.setText(bookPL.toString());
+		scalpUI.openPositionValue.setText(openPosition.toString());
+		scalpUI.closedPositionValue.setText(closedPosition.toString());
 	}
 	
 	public void updateMarketData() {
@@ -322,17 +266,10 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 			if(!payload.contains("jData"))
 				payload="jData="+payload;
 			response = restTemplate.postForEntity(url, payload+"&jKey="+authToken, String.class);
-		} catch(HttpClientErrorException.Unauthorized ex) {
-			doAuth();
-			doAPICall(url, payload);
-		} catch(HttpClientErrorException.BadRequest bd) {
-			scalpUI.logMessageListModel.addElement("Finvasia API Error: " + bd.getMessage());
-			return bd.getResponseBodyAsString();
 		} catch(Exception ex) {
-			scalpUI.logMessageListModel.addElement("Finvasia API Error: " + ex.getMessage());
-			return null;
+			return "";
 		}
-		return response.getBody();
+		return  "";
 	}
 
 	public class CustomServerWebSocketHandler extends TextWebSocketHandler  {
@@ -438,5 +375,15 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 	    	System.out.println(exception);
 	    }
 
+	}
+	public String getLTPValue(JLabel inputLabel) {
+		String currentPrice;
+		do {
+			currentPrice = inputLabel.getText();
+			System.out.print("-");
+
+		} while(!StringUtils.hasLength(currentPrice));
+
+		return currentPrice;
 	}
 }

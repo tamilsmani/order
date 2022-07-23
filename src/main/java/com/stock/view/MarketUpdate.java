@@ -4,7 +4,7 @@ import javax.swing.JLabel;
 
 import org.springframework.util.StringUtils;
 
-import com.stock.client.FinvasiaAPI;
+import com.stock.client.StockAPI;
 import com.stock.client.StockEnum;
 import com.stock.model.NFOMasterEnum;
 import com.stock.model.OrderRequest;
@@ -18,9 +18,9 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 	//TableModel tradeTableModel;
 	String orderType;
 	ScalpUI scalpUI;
-	FinvasiaAPI finVasiaAPI;
+	StockAPI finVasiaAPI;
 	
-	public MarketUpdate(int row, ScalpUI scalpUI, FinvasiaAPI finVasiaAPI) {
+	public MarketUpdate(int row, ScalpUI scalpUI, StockAPI finVasiaAPI) {
 		super(scalpUI);
 		this.row = row;
 		this.scalpUI = scalpUI;

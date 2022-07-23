@@ -2,8 +2,6 @@ package com.stock.view;
 
 import java.awt.Color;
 import java.awt.DefaultKeyboardFocusManager;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.nio.file.Files;
@@ -22,14 +20,12 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
-import com.stock.client.FinvasiaAPI;
+import com.stock.client.PaperTrade;
+import com.stock.client.StockAPI;
 import com.stock.model.ComboItem;
 import com.stock.model.NFOMasterEnum;
 import com.stock.model.StrikeModel;
@@ -40,8 +36,8 @@ import lombok.SneakyThrows;
 
 public class ScalpUI extends javax.swing.JFrame {
 
-    FinvasiaAPI finvasia;
-    CustomKeyEventDispatcher customKeyEventDispatcher;
+    StockAPI stockAPI;
+    public CustomKeyEventDispatcher customKeyEventDispatcher;
     Float bookedPL = 0f;
     Float openPL = 0f;
     public DefaultListModel<String> logMessageListModel = new DefaultListModel<>();
@@ -96,34 +92,24 @@ public class ScalpUI extends javax.swing.JFrame {
 	        tradeTableModel.addColumn(TradeDataEnum.STATUS.getDesc());
 	
 	        tradeTableModel.addColumn(TradeDataEnum.ORDERID.getDesc());
-//	        tradeTableModel.addTableModelListener(new TableModelListener() {
-//				
-//				@Override
-//				public void tableChanged(TableModelEvent e) {
-//					System.out.print(e);
-//					
-//				}
-//			});
 	        initComponents();
-	        finvasia = new FinvasiaAPI(this);
+	        stockAPI = new PaperTrade(this);
 	        loadStockMasterData();
 	        
 	        
 		//	tradeTableModel.setMinusButton(new TableButtonRenderer("-", this));
 		//	tradeTableModel.setPlusButton(new TableButtonRenderer("+", this));
 		//	tradeTableModel.setExitButton(new TableOrderExitButtonRenderer("Exit", this));
-	        customKeyEventDispatcher = new CustomKeyEventDispatcher(this,finvasia);
+	        customKeyEventDispatcher = new CustomKeyEventDispatcher(this,stockAPI);
 	        
 			tradeTable.getColumnModel().getColumn(TradeDataEnum.MINUS.getColumnIndex()).setCellEditor(
-					new TableButtonRenderer("-", finvasia, customKeyEventDispatcher));
+					new TableButtonRenderer("-", stockAPI));
 			tradeTable.getColumnModel().getColumn(TradeDataEnum.PLUS.getColumnIndex()).setCellEditor(
-					new TableButtonRenderer("+", finvasia, customKeyEventDispatcher));
+					new TableButtonRenderer("+", stockAPI));
 			tradeTable.getColumnModel().getColumn(TradeDataEnum.EXIT.getColumnIndex()).setCellEditor(
-					new TableOrderExitButtonRenderer("Exit", finvasia));
+					new TableOrderExitButtonRenderer("Exit", stockAPI));
 		
-			
 	        settingsPanel.setVisible(false);
-	        
 	        indexOptionCombo.setSelectedIndex(0);
 	        indexCombo.setSelectedIndex(0);
 //	        indexOptionCombo.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
@@ -361,11 +347,11 @@ public class ScalpUI extends javax.swing.JFrame {
                 .addGap(56, 56, 56)
                 .addComponent(clientIdLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(clientIdValue, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(clientIdValue, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(settings)
                 .addGap(32, 32, 32)
-                .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, 371, Short.MAX_VALUE)
                 .addContainerGap())
         );
         clientInfoPanelLayout.setVerticalGroup(
@@ -674,15 +660,14 @@ public class ScalpUI extends javax.swing.JFrame {
                         .addGap(9, 9, 9)
                         .addComponent(lotSizeLabel)))
                 .addGap(18, 18, 18)
-                .addGroup(settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(settingsPanelLayout.createSequentialGroup()
-                        .addComponent(stopLossTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(32, 32, 32)
-                        .addComponent(targetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(targetTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(lotSizeTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(stopLossTxt, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE)
+                    .addComponent(lotSizeTxt))
+                .addGap(32, 32, 32)
+                .addComponent(targetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(targetTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(359, Short.MAX_VALUE))
         );
         settingsPanelLayout.setVerticalGroup(
             settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -765,29 +750,26 @@ public class ScalpUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(bookPLLabelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(bookPLLabelLayout.createSequentialGroup()
-                        .addComponent(bookedPLAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(12, 12, 12)
-                        .addComponent(openPLLabel))
-                    .addGroup(bookPLLabelLayout.createSequentialGroup()
                         .addComponent(totalProfit, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(bookedPLLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
-                .addGroup(bookPLLabelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(openPLAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(totalSL, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
+                        .addComponent(bookedPLLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(totalSL, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(bookPLLabelLayout.createSequentialGroup()
+                        .addComponent(bookedPLAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(12, 12, 12)
+                        .addComponent(openPLLabel)
+                        .addGap(29, 29, 29)
+                        .addComponent(openPLAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(bookPLLabelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(openPositionLabel)
                     .addComponent(closedPositionLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(bookPLLabelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(bookPLLabelLayout.createSequentialGroup()
-                        .addComponent(openPositionValue, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(158, Short.MAX_VALUE))
-                    .addGroup(bookPLLabelLayout.createSequentialGroup()
-                        .addComponent(closedPositionValue, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(31, 158, Short.MAX_VALUE))))
+                    .addComponent(openPositionValue, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(closedPositionValue, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(99, Short.MAX_VALUE))
         );
         bookPLLabelLayout.setVerticalGroup(
             bookPLLabelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -817,23 +799,12 @@ public class ScalpUI extends javax.swing.JFrame {
 
         TableColumnModel colModel=tradeTable.getColumnModel();
         colModel.removeColumn(colModel.getColumn(colModel.getColumnCount()-1));
-        colModel.getColumn(0).setPreferredWidth(100);
+        colModel.getColumn(0).setPreferredWidth(150);
         tradeTable.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        tradeTable.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
+        tradeTable.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         tradeTable.setMinimumSize(new java.awt.Dimension(50, 250));
         tradeTable.setShowGrid(true);
         jScrollPane1.setViewportView(tradeTable);
-        if (tradeTable.getColumnModel().getColumnCount() > 0) {
-            tradeTable.getColumnModel().getColumn(0).setResizable(false);
-            tradeTable.getColumnModel().getColumn(1).setResizable(false);
-            tradeTable.getColumnModel().getColumn(2).setResizable(false);
-            tradeTable.getColumnModel().getColumn(3).setResizable(false);
-            tradeTable.getColumnModel().getColumn(4).setResizable(false);
-            tradeTable.getColumnModel().getColumn(5).setResizable(false);
-            tradeTable.getColumnModel().getColumn(6).setResizable(false);
-            tradeTable.getColumnModel().getColumn(7).setResizable(false);
-            tradeTable.getColumnModel().getColumn(8).setResizable(false);
-        }
 
         javax.swing.GroupLayout tradeInfoPanelLayout = new javax.swing.GroupLayout(tradeInfoPanel);
         tradeInfoPanel.setLayout(tradeInfoPanelLayout);
@@ -936,6 +907,12 @@ public class ScalpUI extends javax.swing.JFrame {
 
     private void totalProfitPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_totalProfitPropertyChange
         // TODO add your handling code here:
+        Float value = Float.parseFloat(totalProfit.getText());
+        if(value < 0) {
+        	totalProfit.setForeground(Color.RED);
+        } else {
+        	totalProfit.setForeground(new Color(0,153,153));
+        }
     }//GEN-LAST:event_totalProfitPropertyChange
 
     private void totalSLPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_totalSLPropertyChange
@@ -1182,7 +1159,7 @@ public class ScalpUI extends javax.swing.JFrame {
     public javax.swing.JRadioButton radioIndex;
     public javax.swing.JRadioButton radioIndexOption;
     public javax.swing.JButton setIndexBtn;
-    private javax.swing.JButton setOptionBtn;
+    public javax.swing.JButton setOptionBtn;
     javax.swing.JCheckBox settings;
     private javax.swing.JPanel settingsPanel;
     public javax.swing.JPanel stockInfoPanel;
