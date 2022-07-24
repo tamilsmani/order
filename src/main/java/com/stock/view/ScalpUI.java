@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.DefaultKeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -58,6 +59,7 @@ public class ScalpUI extends javax.swing.JFrame {
 	
 	public String currentOrderToken;
 	
+	public boolean isOrderOpened = false;
     String lotSize = null;
 	public boolean setToTradeClicked = false;
 	
@@ -129,7 +131,7 @@ public class ScalpUI extends javax.swing.JFrame {
 				.appendPattern("dd-MMM-yyyy").toFormatter();
     	
 		// Select only current month contract on Future / Index / Option
-		List<String> validLines =  Files.lines(Path.of(ClassLoader.getSystemResource("NFO-symbol.csv").toURI())).skip(1).filter(line -> {
+		List<String> validLines =  Files.lines(Path.of(new File(System.getProperty("nfo-symbol-location")).toURI())).skip(1).filter(line -> {
 			String[] split = line.split(",");
 			return split[NFOMasterEnum.EXPIRY.getPosition()].contains(monthYear) && 
 				   !split[NFOMasterEnum.SYMBOL.getPosition()].contains(NFOMasterEnum.FINNIFTY.name()) &&

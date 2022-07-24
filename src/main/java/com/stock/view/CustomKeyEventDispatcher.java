@@ -12,6 +12,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.stock.client.StockAPI;
 import com.stock.client.StockEnum;
+import com.stock.model.NFOMasterEnum;
 import com.stock.model.OrderRequest;
 import com.stock.model.TradeDataEnum;
 
@@ -63,31 +64,43 @@ public class CustomKeyEventDispatcher extends AbstractOrderStatusUpdate implemen
         });
 	}
 	public boolean dispatchKeyEvent(KeyEvent e) {
-		if (scalpUI.setToTradeClicked &&  e.getID() != KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_PRESSED) {
-			System.out.println(e.getKeyChar());
+		if (scalpUI.setToTradeClicked && e.getID() != KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_PRESSED) {
 
 			if (scalpUI.radioIndexOption.isSelected() || scalpUI.radioIndex.isSelected()) {
 				switch (e.getKeyCode()) {
 				case 66:
-					// BUY
-					scalpUI.currentOrderToken = scalpUI.selectedBuySymbolToken;
-					scalpUI.currentOrderSymbol.setText(scalpUI.selectedBuySymbol);
-					//finVasiaAPI.customServerWebSocketHandler.sendPeriodicMessages();
-					
-					stockAPI.createOrder(new OrderRequest(scalpUI.selectedBuySymbol,
-							scalpUI.lotSize,StockEnum.BUY.getDesc()));
-					//updatePLSummaryPanel();
+					if(!scalpUI.isOrderOpened) {
+						// BUY
+						scalpUI.currentOrderToken = scalpUI.selectedBuySymbolToken;
+						scalpUI.currentOrderSymbol.setText(scalpUI.selectedBuySymbol);
+						//finVasiaAPI.customServerWebSocketHandler.sendPeriodicMessages();
+						
+						stockAPI.createOrder(new OrderRequest(scalpUI.selectedBuySymbol,
+								scalpUI.lotSize,StockEnum.BUY.getDesc()));
+						//updatePLSummaryPanel();
+						scalpUI.isOrderOpened = true;
+					} else {
+						scalpUI.logMessageListModel.addElement("Already order is opened hence cannnot create order");
+					}
 					break;
 				case 83:
 					// SELL
-					
-					scalpUI.currentOrderToken = scalpUI.selectedSellSymbolToken;
-					scalpUI.currentOrderSymbol.setText(scalpUI.selectedSellSymbol);
-					//finVasiaAPI.customServerWebSocketHandler.sendPeriodicMessages();
-					
-					stockAPI.createOrder(new OrderRequest(scalpUI.selectedSellSymbol, 
-							scalpUI.lotSize ,StockEnum.SELL.getDesc()));
-					//updatePLSummaryPanel();
+					if(!scalpUI.isOrderOpened) {
+						scalpUI.currentOrderToken = scalpUI.selectedSellSymbolToken;
+						scalpUI.currentOrderSymbol.setText(scalpUI.selectedSellSymbol);
+						//finVasiaAPI.customServerWebSocketHandler.sendPeriodicMessages();
+						if(scalpUI.selectedTradeOption.equalsIgnoreCase(NFOMasterEnum.INDEX_OPTION.getCode())) {
+							stockAPI.createOrder(new OrderRequest(scalpUI.selectedSellSymbol, 
+								scalpUI.lotSize ,StockEnum.BUY.getDesc()));
+						} else {
+							stockAPI.createOrder(new OrderRequest(scalpUI.selectedSellSymbol, 
+									scalpUI.lotSize ,StockEnum.SELL.getDesc()));
+						}
+						//updatePLSummaryPanel();
+						scalpUI.isOrderOpened = true;
+					} else {
+						scalpUI.logMessageListModel.addElement("Already order is opened hence cannnot create order");
+					}
 					break;
 				case 67:
 					// CLOSE
@@ -115,6 +128,7 @@ public class CustomKeyEventDispatcher extends AbstractOrderStatusUpdate implemen
 							tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString()
 					+" Closed");
 					//scalpUI.setToTradeClicked = false;
+					scalpUI.isOrderOpened = false;
 					break;
 				case KeyEvent.VK_UP:
 					break;

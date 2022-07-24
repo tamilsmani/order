@@ -1,5 +1,6 @@
 package com.stock.client;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
@@ -64,7 +65,7 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 	public PaperTrade(ScalpUI scalpUI) throws Exception {
 		super(scalpUI);
 		//FinvasiaWS finvasiaWS = new FinvasiaWS();
-		InputStream propertyFile = new FileInputStream(System.getProperty("config.location"));
+		InputStream propertyFile = new FileInputStream(new File(System.getProperty("config.location")));
 		prop.load(propertyFile);
 		
 		finvasiaURI = prop.getProperty("finvasia.uat.url");
@@ -174,7 +175,7 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 		tradeTableModel.setTransType(order.getTrantype());
 		tradeTableModel.setQuantity(Integer.parseInt(order.getQty()));
 		
-		if(StockEnum.SELL.getDesc().equalsIgnoreCase(order.getTrantype()) && 
+		if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()) && 
 				order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionPECombo.getSelectedItem()).getKey())) {
 			tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionPEAsk)));
 
