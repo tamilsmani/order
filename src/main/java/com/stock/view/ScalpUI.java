@@ -56,6 +56,7 @@ public class ScalpUI extends javax.swing.JFrame {
 	public String selectedSellSymbolToken;
 	
 	public String currentOrderToken;
+	public boolean isPaperTradeEnabled = true;
 	
 	public boolean isOrderOpened = false;
     String lotSize = null;
@@ -107,7 +108,7 @@ public class ScalpUI extends javax.swing.JFrame {
 			tradeTable.getColumnModel().getColumn(TradeDataEnum.PLUS.getColumnIndex()).setCellEditor(
 					new TableButtonRenderer("+", stockAPI));
 			tradeTable.getColumnModel().getColumn(TradeDataEnum.EXIT.getColumnIndex()).setCellEditor(
-					new TableOrderExitButtonRenderer("Exit", stockAPI));
+					new TableOrderExitButtonRenderer("Exit", stockAPI, this));
 		
 	        settingsPanel.setVisible(false);
 	        indexOptionCombo.setSelectedIndex(0);

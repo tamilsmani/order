@@ -43,7 +43,7 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 				//System.out.println("bid-price=" + scalpUI.indexBid.getText());
 				//System.out.println("Running row=" +row);
 				if(scalpUI.setToTradeClicked) {
-					updateCellData(transactionType);
+					updateCellData(transactionType, tradingSymbol);
 				
 					Float ltpValue = Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.LTP.getColumnIndex()).toString());
 					Float slValue =  Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.SL.getColumnIndex()).toString());
@@ -73,6 +73,17 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 						scalpUI.tradeTableModel.setValueAt(null, row, TradeDataEnum.EXIT.getColumnIndex());
 	
 						scalpUI.logMessageListModel.addElement(tradingSymbol + " - SL Triggered ");
+						scalpUI.isOrderOpened = false;
+						
+						// Note: Required only for paper trade
+						if(scalpUI.isPaperTradeEnabled) {
+							if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
+								scalpUI.tradeTableModel.setValueAt(String.valueOf((ltpValue - avgPrice) * qty), row, TradeDataEnum.PL.getColumnIndex());
+							} else {
+								scalpUI.tradeTableModel.setValueAt(String.valueOf((avgPrice - ltpValue) * qty), row, TradeDataEnum.PL.getColumnIndex());
+							}
+						}
+						
 						break;
 					}
 					
@@ -99,7 +110,7 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 	}
 	
 	@SneakyThrows
-	private void updateCellData(String transactionType) {
+	private void updateCellData(String transactionType, String tradingSymbol) {
 		if(NFOMasterEnum.INDEX_FUTURE.getCode().equalsIgnoreCase(scalpUI.selectedTradeOption)) {
 			if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
 				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.indexBid, row), row, TradeDataEnum.LTP.getColumnIndex());
@@ -107,10 +118,12 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.indexAsk, row), row, TradeDataEnum.LTP.getColumnIndex());
 			}
 		} else if(NFOMasterEnum.INDEX_OPTION.getCode().equalsIgnoreCase(scalpUI.selectedTradeOption)) {
-			if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
-				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionCEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
-			} else {
+			//if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
+			// PE buy - OPTION SELL
+			if(tradingSymbol.contains("22P")) {
 				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionPEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
+			} else {
+				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionCEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
 			}
 		}
 		scalpUI.tradeTableModel.fireTableDataChanged();

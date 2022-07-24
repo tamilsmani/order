@@ -15,7 +15,8 @@ public enum TradeDataEnum {
 	PL("P/L",8),
 	EXIT("Exit",9),
 	STATUS("Status",10),
-	ORDERID("OrderId",11);
+	ORDERID("OrderId",11),
+	TRADE_TYPE("TradeType",12);
 
 	@Getter
 	String desc;

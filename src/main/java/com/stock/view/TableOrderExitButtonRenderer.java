@@ -21,10 +21,12 @@ public class TableOrderExitButtonRenderer extends AbstractCellEditor implements 
     StockAPI stockAPI;
     String symbol;
     int maxColumnCount;
+    ScalpUI scalpUI;
     
-    public TableOrderExitButtonRenderer(String symbol, StockAPI stockAPI) {
+    public TableOrderExitButtonRenderer(String symbol, StockAPI stockAPI, ScalpUI scalpUI) {
         this.symbol = symbol;
         this.stockAPI = stockAPI;
+        this.scalpUI =  scalpUI;
     }
 
     @Override
@@ -47,6 +49,7 @@ public class TableOrderExitButtonRenderer extends AbstractCellEditor implements 
 	            			   StockEnum.BUY.getDesc().equalsIgnoreCase(
 	            					   tableModel.getValueAt(row, TradeDataEnum.TRANS.getColumnIndex()).toString()) ?  
 	            							   StockEnum.SELL.getDesc() : StockEnum.BUY.getDesc()));
+						scalpUI.isOrderOpened = false;
 	            	   
 	               } else {
 	            	   b.removeActionListener(this);
