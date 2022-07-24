@@ -17,7 +17,7 @@ import com.stock.model.TradeDataEnum;
 
 public class TableButtonRenderer extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
     String symbol;
-    float INCREMENT_VALUE = 0.5f;
+    float INCREMENT_VALUE = 1.0f;
     StockAPI stockAPI;
     int maxColumnCount = 0;
     ScalpUI scalpUI;

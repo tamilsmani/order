@@ -178,6 +178,8 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 		if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()) && 
 				order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionPECombo.getSelectedItem()).getKey())) {
 			tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionPEAsk)));
+			tradeTableModel.setSl(tradeTableModel.getAvg() -
+					Float.parseFloat(scalpUI.stopLossTxt.getText()));
 
 //			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()))
 //				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionPEAsk)));
@@ -187,21 +189,26 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 		} else if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()) && 
 				order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionCECombo.getSelectedItem()).getKey())) {
 			tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionCEAsk)));
+			tradeTableModel.setSl(tradeTableModel.getAvg() -
+					Float.parseFloat(scalpUI.stopLossTxt.getText()));
 //			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()))
 //				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionCEAsk)));
 //			else 
 //				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.optionCEBid)));
 			
 		} else if(order.getTsym().equalsIgnoreCase(((ComboItem)scalpUI.indexCombo.getSelectedItem()).getKey())) {
-			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype()))
+			if(StockEnum.BUY.getDesc().equalsIgnoreCase(order.getTrantype())) {
 				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.indexAsk)));
-			else 
+				tradeTableModel.setSl(tradeTableModel.getAvg() -
+						Float.parseFloat(scalpUI.stopLossTxt.getText()));
+			} else {
 				tradeTableModel.setAvg(Float.parseFloat(getLTPValue(scalpUI.indexBid)));
+				tradeTableModel.setSl(tradeTableModel.getAvg() +
+						Float.parseFloat(scalpUI.stopLossTxt.getText()));
+			}
 			
 		}
 		
-		tradeTableModel.setSl(tradeTableModel.getAvg() -
-				Float.parseFloat(scalpUI.stopLossTxt.getText()));
 		tradeTableModel.setLtp(tradeTableModel.getAvg());
 		tradeTableModel.setPl(tradeTableModel.getAvg()- tradeTableModel.getLtp());
 		tradeTableModel.setStatus(StockEnum.PENDING.getDesc());

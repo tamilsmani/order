@@ -270,7 +270,7 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 						tradeTableModel.setSl(Float.parseFloat(orderPositionResponse.getDaysellavgprc()) + 
 								Float.parseFloat(scalpUI.stopLossTxt.getText()));
 						tradeTableModel.setLtp(tradeTableModel.getAvg());
-						tradeTableModel.setPl(tradeTableModel.getAvg()- tradeTableModel.getLtp());
+						tradeTableModel.setPl(tradeTableModel.getAvg()+ tradeTableModel.getLtp());
 	
 					}
 					/*

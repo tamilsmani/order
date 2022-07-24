@@ -64,6 +64,7 @@ public class CustomKeyEventDispatcher extends AbstractOrderStatusUpdate implemen
         });
 	}
 	public boolean dispatchKeyEvent(KeyEvent e) {
+		System.out.println(scalpUI.setToTradeClicked);
 		if (scalpUI.setToTradeClicked && e.getID() != KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_PRESSED) {
 
 			if (scalpUI.radioIndexOption.isSelected() || scalpUI.radioIndex.isSelected()) {
@@ -104,31 +105,35 @@ public class CustomKeyEventDispatcher extends AbstractOrderStatusUpdate implemen
 					break;
 				case 67:
 					// CLOSE
-					if(StockEnum.BUY.getDesc().equalsIgnoreCase(
-							tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.TRANS.getColumnIndex()).toString())) {
-						stockAPI.createOrder(new OrderRequest(
-								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString(),
-								//scalpUI.selectedSellSymbol, 
-								// scalpUI.lotSize, 
-								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.QTY.getColumnIndex()).toString(),
-								StockEnum.SELL.getDesc()
-								));
-					} else if(StockEnum.SELL.getDesc().equalsIgnoreCase(
-							tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.TRANS.getColumnIndex()).toString())) {
-						stockAPI.createOrder(new OrderRequest(
-//								scalpUI.selectedSellSymbol, 
-//								scalpUI.lotSize, 
-								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString(),
-								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.QTY.getColumnIndex()).toString(),
-								StockEnum.BUY.getDesc()
-								));
-
+					if(scalpUI.isOrderOpened) {
+						if(StockEnum.BUY.getDesc().equalsIgnoreCase(
+								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.TRANS.getColumnIndex()).toString())) {
+							stockAPI.createOrder(new OrderRequest(
+									tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString(),
+									//scalpUI.selectedSellSymbol, 
+									// scalpUI.lotSize, 
+									tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.QTY.getColumnIndex()).toString(),
+									StockEnum.SELL.getDesc()
+									));
+						} else if(StockEnum.SELL.getDesc().equalsIgnoreCase(
+								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.TRANS.getColumnIndex()).toString())) {
+							stockAPI.createOrder(new OrderRequest(
+	//								scalpUI.selectedSellSymbol, 
+	//								scalpUI.lotSize, 
+									tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString(),
+									tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.QTY.getColumnIndex()).toString(),
+									StockEnum.BUY.getDesc()
+									));
+	
+						}
+						scalpUI.logMessageListModel.addElement("Order - " + 
+								tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString()
+						+" Closed");
+						//scalpUI.setToTradeClicked = false;
+						scalpUI.isOrderOpened = false;
+					} else {
+						scalpUI.logMessageListModel.addElement("No open order exist to close");
 					}
-					scalpUI.logMessageListModel.addElement("Order - " + 
-							tradeTableModel.getValueAt(tradeTableModel.getRowCount()-1, TradeDataEnum.SYMBOL.getColumnIndex()).toString()
-					+" Closed");
-					//scalpUI.setToTradeClicked = false;
-					scalpUI.isOrderOpened = false;
 					break;
 				case KeyEvent.VK_UP:
 					break;

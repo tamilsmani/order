@@ -34,6 +34,7 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 		//System.out.println("started row=" +row);
 		try {
 
+			String tradingSymbol = scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.SYMBOL.getColumnIndex()).toString();
 			String transactionType = scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.TRANS.getColumnIndex()).toString();
 			Float avgPrice = Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.AVG.getColumnIndex()).toString());
 			Float qty = Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.QTY.getColumnIndex()).toString());
@@ -50,16 +51,17 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 					
 					// SL use case
 					// B -  LTP <= SL  | S - LTP >= SL
-					if(false && (StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType) && ltpValue <= slValue ||
-						StockEnum.SELL.getDesc().equalsIgnoreCase(transactionType) && ltpValue >= slValue	)) {
+					if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType) && ltpValue <= slValue ||
+						StockEnum.SELL.getDesc().equalsIgnoreCase(transactionType) && ltpValue >= slValue	) {
 						//System.out.println("SL Triggered");
 						
 						if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
-							finVasiaAPI.createOrder(new OrderRequest(scalpUI.selectedSellSymbol, StockEnum.SELL.getDesc(), 
-									scalpUI.lotSizeTxt.getText()));
-						} else if(StockEnum.SELL.getDesc().equalsIgnoreCase(transactionType)) {
-							finVasiaAPI.createOrder(new OrderRequest(scalpUI.selectedSellSymbol, StockEnum.BUY.getDesc(), 
-									scalpUI.lotSizeTxt.getText()));
+							finVasiaAPI.createOrder(new OrderRequest(tradingSymbol, String.valueOf(qty) ,
+									StockEnum.SELL.getDesc()));
+						//} else if(StockEnum.SELL.getDesc().equalsIgnoreCase(transactionType)) {
+						} else {
+							finVasiaAPI.createOrder(new OrderRequest(tradingSymbol,String.valueOf(qty),
+									StockEnum.BUY.getDesc()));
 						}
 						
 						scalpUI.tradeTable.getColumnModel().getColumn(TradeDataEnum.MINUS.getColumnIndex()).setCellRenderer(null);
@@ -70,6 +72,7 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 						scalpUI.tradeTableModel.setValueAt(null, row, TradeDataEnum.PLUS.getColumnIndex());
 						scalpUI.tradeTableModel.setValueAt(null, row, TradeDataEnum.EXIT.getColumnIndex());
 	
+						scalpUI.logMessageListModel.addElement(tradingSymbol + " - SL Triggered ");
 						break;
 					}
 					

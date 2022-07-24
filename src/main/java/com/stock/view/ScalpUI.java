@@ -2,8 +2,6 @@ package com.stock.view;
 
 import java.awt.Color;
 import java.awt.DefaultKeyboardFocusManager;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -543,7 +541,7 @@ public class ScalpUI extends javax.swing.JFrame {
                     .addGroup(stockInfoPanelLayout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(currentOrderSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(currentOrderSymbol, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         stockInfoPanelLayout.setVerticalGroup(
@@ -929,7 +927,8 @@ public class ScalpUI extends javax.swing.JFrame {
         if(selectedTradeOption.equalsIgnoreCase(NFOMasterEnum.INDEX_OPTION.getCode())) {
             selectedBuySymbol  = ((ComboItem)indexOptionCECombo.getSelectedItem()).getKey();
             selectedSellSymbol = ((ComboItem)indexOptionPECombo.getSelectedItem()).getKey();
-            lotSize = ((ComboItem)indexOptionCECombo.getSelectedItem()).getLotSize();
+            lotSize = String.valueOf(Integer.parseInt(((ComboItem)indexOptionCECombo.getSelectedItem()).getLotSize()) *
+            		Integer.parseInt(lotSizeTxt.getText()));
             
             selectedBuySymbolToken = ((ComboItem)indexOptionCECombo.getSelectedItem()).getToken();
             selectedSellSymbolToken = ((ComboItem)indexOptionPECombo.getSelectedItem()).getToken();
@@ -946,7 +945,8 @@ public class ScalpUI extends javax.swing.JFrame {
         if (selectedTradeOption.equalsIgnoreCase(NFOMasterEnum.INDEX_FUTURE.getCode())) {
             selectedBuySymbol  = ((ComboItem)indexCombo.getSelectedItem()).getKey();
             selectedSellSymbol = ((ComboItem)indexCombo.getSelectedItem()).getKey();
-            lotSize = ((ComboItem)indexCombo.getSelectedItem()).getLotSize();
+            lotSize = String.valueOf(Integer.parseInt(((ComboItem)indexCombo.getSelectedItem()).getLotSize()) *
+            		Integer.parseInt(lotSizeTxt.getText()));
             
             selectedBuySymbolToken = ((ComboItem)indexCombo.getSelectedItem()).getToken();
             selectedSellSymbolToken = ((ComboItem)indexCombo.getSelectedItem()).getToken();
