@@ -80,8 +80,7 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 		this.scalpUI = scalpUI;
 		objectMapper();
 		doWSAuth();
-
-		initalizeMarketDepth();
+		//initalizeMarketDepth();
 		startPLCalculation();
 	}
 	
@@ -352,6 +351,7 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 	    	WSResponse wsresponse = objectMapper.readValue( message.getPayload(), WSResponse.class);
 	    	if(StockEnum.OK.desc.equalsIgnoreCase(wsresponse.getS())) {
 	    		scalpUI.logMessageListModel.addElement(WS_CONNECTION_STATUS_FORMAT);
+	    		initalizeMarketDepth();
 	    	} else {
 	    		
 	    		MarketDepth marketDepth = objectMapper.readValue( message.getPayload(), MarketDepth.class);
@@ -360,20 +360,31 @@ public class PaperTrade extends AbstractSockAPI implements StockAPI {
 	    			if(marketDepth.getTk().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionPECombo.getSelectedItem()).getToken())) {
 	    				scalpUI.optionPEBid.setText(marketDepth.getBp1());
 	    				scalpUI.optionPEAsk.setText(marketDepth.getSp1());
+	    				if(marketDepth.getBp1()!=null)
+	    					scalpUI.optionPEBidPrice = Float.parseFloat(marketDepth.getBp1());
+
 	    			} else if(marketDepth.getTk().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionCECombo.getSelectedItem()).getToken())) {
 	    				scalpUI.optionCEBid.setText(marketDepth.getBp1());
 	    				scalpUI.optionCEAsk.setText(marketDepth.getSp1());
+	    				if(marketDepth.getBp1()!=null)
+	    					scalpUI.optionCEBidPrice = Float.parseFloat(marketDepth.getBp1());
+
 	    			} else if(marketDepth.getTk().equalsIgnoreCase(((ComboItem)scalpUI.indexCombo.getSelectedItem()).getToken())) {
 	    				scalpUI.indexBid.setText(marketDepth.getBp1());
 	    				scalpUI.indexAsk.setText(marketDepth.getSp1());
+	    				if(marketDepth.getBp1()!=null && marketDepth.getSp1()!=null) {
+	    					scalpUI.indexBidPrice = Float.parseFloat(marketDepth.getBp1());
+	    					scalpUI.indexAskPrice = Float.parseFloat(marketDepth.getSp1());
+	    				}
 	    			}
+	    			
 	    		//}
 //	    		scalpUI.currentOrderBidPrice.setText(marketDept.getBp1());
 //	    		scalpUI.currentOrderOfferPrice.setText(marketDept.getSp1());
 	    	}
 	       // String response = String.format("response from server to '%s'", HtmlUtils.htmlEscape(request));
 	      //  logger.info("Server sends: {}", response);
-	    	//Thread.sleep(100);
+	    	//Thread.sleep(50 );
 	      //  sendPeriodicMessages();
 	       // session.sendMessage(new TextMessage("{\"t\":\"d\",\"k\":\"NSE|22#BSE|508123\"}"));
 	    }

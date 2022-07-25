@@ -44,7 +44,7 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 				//System.out.println("Running row=" +row);
 				if(scalpUI.setToTradeClicked) {
 					updateCellData(transactionType, tradingSymbol);
-				
+					Thread.sleep(10);
 					Float ltpValue = Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.LTP.getColumnIndex()).toString());
 					Float slValue =  Float.parseFloat(scalpUI.tradeTableModel.getValueAt(row, TradeDataEnum.SL.getColumnIndex()).toString());
 					//System.out.println("row=" +row +" - ltp=" + ltpValue);
@@ -113,21 +113,25 @@ public class MarketUpdate extends AbstractOrderStatusUpdate implements Runnable 
 	private void updateCellData(String transactionType, String tradingSymbol) {
 		if(NFOMasterEnum.INDEX_FUTURE.getCode().equalsIgnoreCase(scalpUI.selectedTradeOption)) {
 			if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
-				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.indexBid, row), row, TradeDataEnum.LTP.getColumnIndex());
+				scalpUI.tradeTableModel.setValueAt(String.format("%.2f",scalpUI.indexBidPrice), row, TradeDataEnum.LTP.getColumnIndex());
+				//scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.indexBid, row), row, TradeDataEnum.LTP.getColumnIndex());
 			} else {
-				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.indexAsk, row), row, TradeDataEnum.LTP.getColumnIndex());
+				scalpUI.tradeTableModel.setValueAt(String.format("%.2f",scalpUI.indexAskPrice), row, TradeDataEnum.LTP.getColumnIndex());
+				//scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.indexAsk, row), row, TradeDataEnum.LTP.getColumnIndex());
 			}
 		} else if(NFOMasterEnum.INDEX_OPTION.getCode().equalsIgnoreCase(scalpUI.selectedTradeOption)) {
 			//if(StockEnum.BUY.getDesc().equalsIgnoreCase(transactionType)) {
 			// PE buy - OPTION SELL
 			if(tradingSymbol.contains("22P")) {
-				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionPEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
+				scalpUI.tradeTableModel.setValueAt(String.format("%.2f",scalpUI.optionPEBidPrice), row, TradeDataEnum.LTP.getColumnIndex());
+				//scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionPEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
 			} else {
-				scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionCEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
+				scalpUI.tradeTableModel.setValueAt(String.format("%.2f",scalpUI.optionCEBidPrice), row, TradeDataEnum.LTP.getColumnIndex());
+				//scalpUI.tradeTableModel.setValueAt(getLTPValue(scalpUI.optionCEBid, row), row, TradeDataEnum.LTP.getColumnIndex());
 			}
 		}
 		scalpUI.tradeTableModel.fireTableDataChanged();
-		Thread.sleep(500);
+	//	Thread.sleep(100);
 		//scalpUI.tradeTableModel.fireTableCellUpdated(row, TradeDataEnum.LTP.getColumnIndex());
 	}
 	public String getLTPValue(JLabel inputLabel, int row) {

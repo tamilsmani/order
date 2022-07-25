@@ -21,10 +21,9 @@ public abstract class AbstractSockAPI {
 	
 	@SneakyThrows
 	protected void initalizeMarketDepth() {
-		Thread.sleep(3000);
 		executorService.submit(() -> {
 			while(true) {
-				Thread.sleep(700);
+				Thread.sleep(50);
 				this.customServerWebSocketHandler.sendPeriodicMessages();
 			}
 		});

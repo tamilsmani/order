@@ -64,7 +64,7 @@ public class CustomKeyEventDispatcher extends AbstractOrderStatusUpdate implemen
         });
 	}
 	public boolean dispatchKeyEvent(KeyEvent e) {
-		System.out.println(scalpUI.setToTradeClicked);
+		//System.out.println(scalpUI.setToTradeClicked);
 		if (scalpUI.setToTradeClicked && e.getID() != KeyEvent.VK_ENTER && e.getID() == KeyEvent.KEY_PRESSED) {
 
 			if (scalpUI.radioIndexOption.isSelected() || scalpUI.radioIndex.isSelected()) {

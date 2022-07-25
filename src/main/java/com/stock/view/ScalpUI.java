@@ -61,7 +61,11 @@ public class ScalpUI extends javax.swing.JFrame {
 	public boolean isOrderOpened = false;
     String lotSize = null;
 	public boolean setToTradeClicked = false;
-	
+	public Float optionPEBidPrice;
+	public Float optionCEBidPrice;
+	public Float indexBidPrice;
+	public Float indexAskPrice;
+
     public ScalpUI() {
         try {
             UIManager.setLookAndFeel(

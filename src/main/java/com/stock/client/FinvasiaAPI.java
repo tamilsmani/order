@@ -415,9 +415,13 @@ public class FinvasiaAPI extends AbstractSockAPI implements StockAPI {
 	    			if(marketDepth.getTk().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionPECombo.getSelectedItem()).getToken())) {
 	    				scalpUI.optionPEBid.setText(marketDepth.getBp1());
 	    				scalpUI.optionPEAsk.setText(marketDepth.getSp1());
+	    				scalpUI.optionPEBidPrice = Float.parseFloat(marketDepth.getBp1());
+
 	    			} else if(marketDepth.getTk().equalsIgnoreCase(((ComboItem)scalpUI.indexOptionCECombo.getSelectedItem()).getToken())) {
 	    				scalpUI.optionCEBid.setText(marketDepth.getBp1());
 	    				scalpUI.optionCEAsk.setText(marketDepth.getSp1());
+	    				scalpUI.optionCEBidPrice = Float.parseFloat(marketDepth.getBp1());
+
 	    			} else if(marketDepth.getTk().equalsIgnoreCase(((ComboItem)scalpUI.indexCombo.getSelectedItem()).getToken())) {
 	    				scalpUI.indexBid.setText(marketDepth.getBp1());
 	    				scalpUI.indexAsk.setText(marketDepth.getSp1());
